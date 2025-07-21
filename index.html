@@ -363,6 +363,7 @@
     </style>
 </head>
 <body>
+<div class="container">
     <div class="container">
         <!-- Auth Container -->
         <div id="authContainer" class="auth-container">
@@ -496,140 +497,111 @@
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        // Firebase configuration - GANTI DENGAN KONFIGURASI ANDA
-        const firebaseConfig = {
-            apiKey: "AIzaSyCGsYJq_6VoV9Zcszp9zroCkhyLPlkNiJY",
-  authDomain: "pencatatkeuangan-4a3f1.firebaseapp.com",
-  projectId: "pencatatkeuangan-4a3f1",
-  storageBucket: "pencatatkeuangan-4a3f1.firebasestorage.app",
-  messagingSenderId: "815761404784",
-  appId: "1:815761404784:web:220dd390a305a423ffd5b5",
-        };
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyCGsYJq_6VoV9Zcszp9zroCkhyLPlkNiJY",
+    authDomain: "pencatatkeuangan-4a3f1.firebaseapp.com",
+    projectId: "pencatatkeuangan-4a3f1",
+    storageBucket: "pencatatkeuangan-4a3f1.firebasestorage.app",
+    messagingSenderId: "815761404784",
+    appId: "1:815761404784:web:220dd390a305a423ffd5b5",
+};
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-        let currentUser = null;
-        let transactions = [];
+let currentUser = null;
+let transactions = [];
 
-        // Set tanggal hari ini sebagai default
-        document.getElementById('date').value = new Date().toISOString().split('T')[0];
+document.getElementById('date').value = new Date().toISOString().split('T')[0];
 
-        // Auth state observer
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                currentUser = user;
-                showApp();
-                loadTransactions();
-            } else {
-                currentUser = null;
-                showAuth();
-            }
-        });
-
-        function showLogin() {
-            document.getElementById('loginForm').classList.remove('hidden');
-            document.getElementById('registerForm').classList.add('hidden');
-        }
-
-        function showRegister() {
-            document.getElementById('loginForm').classList.add('hidden');
-            document.getElementById('registerForm').classList.remove('hidden');
-        }
-
-        function showAuth() {
-            document.getElementById('authContainer').classList.remove('hidden');
-            document.getElementById('appContainer').classList.add('hidden');
-        }
-
-        function showApp() {
-            document.getElementById('authContainer').classList.add('hidden');
-            document.getElementById('appContainer').classList.remove('hidden');
-            document.getElementById('userEmail').textContent = currentUser .email;
-
-            // Panggil loadTransactions untuk mulai mendengarkan perubahan
-            loadTransactions();
-        }
-
-        function showError(elementId, message) {
-            const errorElement = document.getElementById(elementId);
-            errorElement.textContent = message;
-            errorElement.classList.remove('hidden');
-            setTimeout(() => {
-                errorElement.classList.add('hidden');
-            }, 5000);
-        }
-
-        
-
-        async function login() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-
-            if (!email || !password) {
-                showError('loginError', 'Mohon isi email dan password');
-                return;
-            }
-
-            try {
-                await auth.signInWithEmailAndPassword(email, password);
-            } catch (error) {
-                showError('loginError', 'Login gagal: ' + error.message);
-            }
-        }
-
-        async function register() {
-            const email = document.getElementById('registerEmail').value;
-            const password = document.getElementById('registerPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-
-            if (!email || !password || !confirmPassword) {
-                showError('registerError', 'Mohon isi semua field');
-                return;
-            }
-
-            if (password !== confirmPassword) {
-                showError('registerError', 'Password tidak cocok');
-                return;
-            }
-
-            if (password.length < 6) {
-                showError('registerError', 'Password minimal 6 karakter');
-                return;
-            }
-
-            try {
-                await auth.createUserWithEmailAndPassword(email, password);
-            } catch (error) {
-                showError('registerError', 'Registrasi gagal: ' + error.message);
-            }
-        }
-
-        function logout() {
-            auth.signOut();
-            transactions = [];
-        }
-
-        async function loginWithGoogle() {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    try {
-        const result = await auth.signInWithPopup(provider);
-        // User signed in
-        currentUser  = result.user;
+auth.onAuthStateChanged(user => {
+    if (user) {
+        currentUser = user;
         showApp();
-        loadTransactions(); // Memuat transaksi setelah login
-    } catch (error) {
-        console.error('Error during Google login:', error);
-        alert('Login dengan Google gagal: ' + error.message);
+        loadTransactions();
+    } else {
+        currentUser = null;
+        showAuth();
+    }
+});
+
+function showLogin() {
+    document.getElementById('loginForm').classList.remove('hidden');
+    document.getElementById('registerForm').classList.add('hidden');
+}
+
+function showRegister() {
+    document.getElementById('loginForm').classList.add('hidden');
+    document.getElementById('registerForm').classList.remove('hidden');
+}
+
+function showAuth() {
+    document.getElementById('authContainer').classList.remove('hidden');
+    document.getElementById('appContainer').classList.add('hidden');
+}
+
+function showApp() {
+    document.getElementById('authContainer').classList.add('hidden');
+    document.getElementById('appContainer').classList.remove('hidden');
+    document.getElementById('userEmail').textContent = currentUser.email;
+    loadTransactions();
+}
+
+function showError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 5000);
+}
+
+async function login() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    if (!email || !password) return showError('loginError', 'Mohon isi semua field');
+    try {
+        await auth.signInWithEmailAndPassword(email, password);
+    } catch (e) {
+        showError('loginError', 'Login gagal: ' + e.message);
     }
 }
 
+async function register() {
+    const email = document.getElementById('registerEmail').value;
+    const password = document.getElementById('registerPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    if (!email || !password || !confirmPassword)
+        return showError('registerError', 'Mohon isi semua field');
+    if (password !== confirmPassword)
+        return showError('registerError', 'Password tidak cocok');
+    if (password.length < 6)
+        return showError('registerError', 'Minimal 6 karakter');
+    try {
+        await auth.createUserWithEmailAndPassword(email, password);
+    } catch (e) {
+        showError('registerError', 'Registrasi gagal: ' + e.message);
+    }
+}
 
-        
+function logout() {
+    auth.signOut();
+    transactions = [];
+}
+
+async function loginWithGoogle() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try {
+        const result = await auth.signInWithPopup(provider);
+        currentUser = result.user;
+        showApp();
+        loadTransactions();
+    } catch (e) {
+        alert('Login dengan Google gagal: ' + e.message);
+    }
+}
 
 async function addTransaction() {
     const type = document.getElementById('transactionType').value;
@@ -637,272 +609,132 @@ async function addTransaction() {
     const category = document.getElementById('category').value;
     const date = document.getElementById('date').value;
     const description = document.getElementById('description').value;
-
-    if (!amount || amount <= 0) {
-        alert('Mohon masukkan jumlah yang valid');
-        return;
-    }
-
-    if (!date) {
-        alert('Mohon pilih tanggal');
-        return;
-    }
-
+    if (!amount || amount <= 0) return alert('Jumlah tidak valid');
+    if (!date) return alert('Tanggal wajib diisi');
     const transaction = {
-        type,
-        amount,
-        category,
-        date,
-        description,
+        type, amount, category, date, description,
         userId: currentUser.uid,
         timestamp: Date.now()
     };
-
     try {
         await db.collection('transactions').add(transaction);
-
-        // Reset form
         document.getElementById('amount').value = '';
         document.getElementById('description').value = '';
         document.getElementById('date').value = new Date().toISOString().split('T')[0];
-
-        // Perbarui tampilan transaksi
-        loadTransactions();
-    } catch (error) {
-        alert('Error menambah transaksi: ' + error.message);
+    } catch (e) {
+        alert('Gagal menambahkan transaksi: ' + e.message);
     }
 }
 
-
-
 function loadTransactions() {
-    if (!currentUser ) return;
-
-    // Gunakan onSnapshot untuk mendengarkan perubahan pada koleksi transaksi
+    if (!currentUser) return;
     db.collection('transactions')
-        .where('userId', '==', currentUser .uid)
+        .where('userId', '==', currentUser.uid)
+        .orderBy('timestamp', 'desc')
         .onSnapshot(snapshot => {
-            transactions = [];
-            snapshot.forEach(doc => {
-                transactions.push({
-                    id: doc.id,
-                    ...doc.data()
-                });
-            });
-
-            // Sort di client side berdasarkan tanggal
-            transactions.sort((a, b) => {
-                const dateA = new Date(a.date);
-                const dateB = new Date(b.date);
-                return dateB - dateA; // Descending order
-            });
-
+            transactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             displayTransactions();
             updateStats();
         }, error => {
-            console.error('Error loading transactions:', error);
-            alert('Error memuat transaksi. Pastikan konfigurasi Firebase sudah benar.');
+            console.error('Gagal memuat transaksi:', error);
+            alert('Gagal memuat transaksi');
         });
 }
 
-function renderTransactions() {
-    const container = document.getElementById('transactionList');
-    container.innerHTML = '';
-
-    transactions.forEach(tr => {
-        const div = document.createElement('div');
-        div.textContent = `${tr.date} - ${tr.category} - Rp${tr.amount}`;
-        container.appendChild(div);
-    });
+function displayTransactions() {
+    const container = document.getElementById('transactionsList');
+    if (transactions.length === 0) {
+        container.innerHTML = '<p style="text-align:center">Belum ada transaksi</p>';
+        return;
+    }
+    container.innerHTML = transactions.map(t => `
+        <div class="transaction-item">
+            <div class="transaction-info">
+                <h4>${t.category}</h4>
+                <p>${t.description || 'Tidak ada deskripsi'}</p>
+                <p>${formatDate(t.date)}</p>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <div class="transaction-amount ${t.type}">
+                    ${getTransactionPrefix(t.type)}${formatCurrency(t.amount)}
+                </div>
+                <button class="delete-btn" onclick="deleteTransaction('${t.id}')">×</button>
+            </div>
+        </div>
+    `).join('');
 }
 
-
-
-
-
-
-async function loadTransactions() {
-    if (!currentUser) return;
-
-    try {
-        const snapshot = await db.collection('transactions')
-            .where('userId', '==', currentUser.uid)
-            .get();
-
-        transactions = [];
-        snapshot.forEach(doc => {
-            transactions.push({
-                id: doc.id,
-                ...doc.data()
-            });
-        });
-
-        // Sort berdasarkan tanggal terbaru
-        transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        displayTransactions();
-        updateStats();
-    } catch (error) {
-        console.error('Error loading transactions:', error);
-        alert('Error memuat transaksi. Pastikan konfigurasi Firebase sudah benar.');
+function getTransactionPrefix(type) {
+    switch (type) {
+        case 'income': return '+';
+        case 'expense': return '-';
+        case 'savings': return '💰';
+        default: return '';
     }
 }
 
-        async function deleteTransaction(id) {
-            if (confirm('Yakin ingin menghapus transaksi ini?')) {
-                try {
-                    await db.collection('transactions').doc(id).delete();
-                    loadTransactions();
-                } catch (error) {
-                    alert('Error menghapus transaksi: ' + error.message);
-                }
-            }
+function updateStats() {
+    const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+    const expense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+    const savings = transactions.filter(t => t.type === 'savings').reduce((sum, t) => sum + t.amount, 0);
+    const balance = income - expense;
+    document.getElementById('totalIncome').textContent = formatCurrency(income);
+    document.getElementById('totalExpense').textContent = formatCurrency(expense);
+    document.getElementById('totalSavings').textContent = formatCurrency(savings);
+    const el = document.getElementById('balance');
+    el.textContent = formatCurrency(balance);
+    el.className = 'amount ' + (balance >= 0 ? 'income' : 'expense');
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
+}
+
+function formatDate(str) {
+    const date = new Date(str);
+    return date.toLocaleDateString('id-ID', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+}
+
+async function deleteTransaction(id) {
+    if (confirm('Yakin ingin menghapus transaksi ini?')) {
+        try {
+            await db.collection('transactions').doc(id).delete();
+        } catch (e) {
+            alert('Gagal menghapus transaksi: ' + e.message);
         }
+    }
+}
 
-        function displayTransactions() {
-            const container = document.getElementById('transactionsList');
-            
-            if (transactions.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: #666;">Belum ada transaksi</p>';
-                return;
-            }
+document.getElementById('transactionType').addEventListener('change', function() {
+    const type = this.value;
+    const select = document.getElementById('category');
+    select.innerHTML = '';
+    const options = {
+        income: ['Gaji', 'Bonus', 'Freelance', 'Investasi', 'Hadiah', 'Lainnya'],
+        expense: ['Makanan', 'Transportasi', 'Belanja', 'Hiburan', 'Tagihan', 'Kesehatan', 'Pendidikan', 'Lainnya'],
+        savings: ['Dana Darurat', 'Tabungan Pendidikan', 'Tabungan Liburan', 'Tabungan Rumah', 'Investasi', 'Reksadana', 'Deposito', 'Lainnya']
+    }[type];
+    options.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        select.appendChild(opt);
+    });
+});
 
-            container.innerHTML = transactions.map(transaction => `
-                <div class="transaction-item">
-                    <div class="transaction-info">
-                        <h4>${transaction.category}</h4>
-                        <p>${transaction.description || 'Tidak ada deskripsi'}</p>
-                        <p>${formatDate(transaction.date)}</p>
-                    </div>
-                    <div style="display: flex; align-items: center;">
-                        <div class="transaction-amount ${transaction.type}">
-                            ${getTransactionPrefix(transaction.type)}${formatCurrency(transaction.amount)}
-                        </div>
-                        <button class="delete-btn" onclick="deleteTransaction('${transaction.id}')">×</button>
-                    </div>
-                </div>
-            `).join('');
-        }
+window.addEventListener('load', () => {
+    document.getElementById('transactionType').dispatchEvent(new Event('change'));
+});
 
-        function getTransactionPrefix(type) {
-            switch(type) {
-                case 'income': return '+';
-                case 'expense': return '-';
-                case 'savings': return '💰';
-                default: return '';
-            }
-        }
+document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') login();
+});
 
-        function updateStats() {
-            const income = transactions
-                .filter(t => t.type === 'income')
-                .reduce((sum, t) => sum + t.amount, 0);
-
-            const expense = transactions
-                .filter(t => t.type === 'expense')
-                .reduce((sum, t) => sum + t.amount, 0);
-
-            const savings = transactions
-                .filter(t => t.type === 'savings')
-                .reduce((sum, t) => sum + t.amount, 0);
-
-            const balance = income - expense;
-
-            document.getElementById('totalIncome').textContent = formatCurrency(income);
-            document.getElementById('totalExpense').textContent = formatCurrency(expense);
-            document.getElementById('totalSavings').textContent = formatCurrency(savings);
-            document.getElementById('balance').textContent = formatCurrency(balance);
-            
-            // Change balance color
-            const balanceElement = document.getElementById('balance');
-            if (balance >= 0) {
-                balanceElement.className = 'amount income';
-            } else {
-                balanceElement.className = 'amount expense';
-            }
-        }
-
-        function formatCurrency(amount) {
-            return new Intl.NumberFormat('id-ID', {
-                style: 'currency',
-                currency: 'IDR',
-                minimumFractionDigits: 0
-            }).format(amount);
-        }
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('id-ID', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        }
-
-        // Update kategori berdasarkan jenis transaksi
-        document.getElementById('transactionType').addEventListener('change', function() {
-            const type = this.value;
-            const categorySelect = document.getElementById('category');
-            
-            // Clear current options
-            categorySelect.innerHTML = '';
-            
-            if (type === 'income') {
-                const incomeCategories = [
-                    'Gaji', 'Bonus', 'Freelance', 'Investasi', 'Hadiah', 'Lainnya'
-                ];
-                incomeCategories.forEach(cat => {
-                    const option = document.createElement('option');
-                    option.value = cat;
-                    option.textContent = cat;
-                    categorySelect.appendChild(option);
-                });
-            } else if (type === 'expense') {
-                const expenseCategories = [
-                    'Makanan', 'Transportasi', 'Belanja', 'Hiburan', 'Tagihan', 
-                    'Kesehatan', 'Pendidikan', 'Lainnya'
-                ];
-                expenseCategories.forEach(cat => {
-                    const option = document.createElement('option');
-                    option.value = cat;
-                    option.textContent = cat;
-                    categorySelect.appendChild(option);
-                });
-            } else if (type === 'savings') {
-                const savingsCategories = [
-                    'Dana Darurat', 'Tabungan Pendidikan', 'Tabungan Liburan', 
-                    'Tabungan Rumah', 'Investasi', 'Reksadana', 'Deposito', 'Lainnya'
-                ];
-                savingsCategories.forEach(cat => {
-                    const option = document.createElement('option');
-                    option.value = cat;
-                    option.textContent = cat;
-                    categorySelect.appendChild(option);
-                });
-            }
-        });
-
-        // Initialize categories on page load
-        window.addEventListener('load', () => {
-            document.getElementById('transactionType').dispatchEvent(new Event('change'));
-            
-            // Cek apakah Firebase sudah dikonfigurasi dengan benar
-            if (firebaseConfig.apiKey === "your-api-key") {
-                alert('⚠️ PENTING: Harap ganti konfigurasi Firebase dengan konfigurasi project Anda sendiri!');
-            }
-        });
-
-        // Enter key handlers
-        document.getElementById('loginPassword').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') login();
-        });
-
-        document.getElementById('confirmPassword').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') register();
-        });
-    </script>
-
-
+document.getElementById('confirmPassword').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') register();
+});
+</script>
 </body>
 </html>
